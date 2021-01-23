@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 import { connect } from './providers'
 import { contracts } from './constants'
+const fs = require('fs');
 
 const [, provider, wallet] = connect()
 const abi = ['function totalSupply() public view returns (uint256)','function poolValue() public view returns (uint256)','event Borrow(address borrower, uint256 amount, uint256 fee)']
@@ -62,52 +63,25 @@ const getEventsHelper = async (topic:string,index:number) => {
         total += TUSD
         totalDiff += diff
         result.push({   
-                        TUSD: TUSD,
-                        TFI: TFI,
-                        TfiPrice: TfiPrice,
-                        CorrectTFI: trueTFI,
-                        Diff: diff,
-                        TotalDiff: totalDiff,
-                        blockNumber: res[i]['blockNumber'],
-                        hash: res[i]['transactionHash'],
-                        addr: '0x'+res[i]['topics'][1].substr(2+24,40)
+                        TUSD_sent: TUSD,
+                        TFI_received: TFI,
+                        Tfi_price: TfiPrice,
+                        Tfi_correct_amount: trueTFI,
+                        Tfi_diff: diff,
+                        Total_diff: totalDiff,
+                        Hash: res[i]['transactionHash'],
+                        BlockNumber: res[i]['blockNumber'],
+                        Address: '0x'+res[i]['topics'][1].substr(2+24,40)
                     })
-                    
-        console.log(result[result.length-1])
     }
-    console.log("total transactions:" + result.length)
+    console.log("Total transactions: " + result.length)
+    fs.writeFileSync('./output.json', JSON.stringify(result,null,2));
     return result
 }
 export const getPoolJoined = async () => {
-    return getEventsHelper('Joined(address,uint256,uint256)',0)
-}
-export const loanTokenHelper = async(address:string) => {
-
-    let result: { total: number; marginChange: number; blockNumber: number }[] = []
-    const loanContract = new ethers.Contract(address, tusdAbi, wallet) 
-    const value = await loanContract.totalSupply()/1e18
-    await provider.getLogs({address: contracts.lender, topics:lender.filters.Funded(address).topics, fromBlock: 0, toBlock: "latest"}).then(res => {
-            result.push({total: 0,marginChange: value,blockNumber: res[0]['blockNumber']})
-    })
-    return result
+    return await getEventsHelper('Joined(address,uint256,uint256)',0)
 }
 
-export const reclaimHelper = async(address:string) => {
-    
-    let result = [];
-    await provider.getLogs({address: contracts.lender, topics:lender.filters.Reclaimed(address).topics, fromBlock: 0, toBlock: "latest"}).then(res => {
-            result.push(res)
-    })
-    return result
-}
-
-export const ClosedEvent = async() => {
-    let result = [];
-    await provider.getLogs({address: loanToken[0], topics:loan1.filters.Closed().topics, fromBlock: 0, toBlock: "latest"}).then(res => {
-            result.push(res)
-    })
-    return result
-}
 
 
 export const loanTokenFinder = async() => {
@@ -116,6 +90,7 @@ export const loanTokenFinder = async() => {
     await provider.getLogs({address: contracts.loanFactory, topics:lender.filters.LoanTokenCreated().topics, fromBlock: 0, toBlock: "latest"}).then(res => {
             result.push(res)
     })
+    // Address: '0x'+res[i]['topics'][1].substr(2+24,40)
     return result
 }
 
