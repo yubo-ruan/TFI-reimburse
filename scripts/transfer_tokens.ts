@@ -24,7 +24,7 @@ async function transferTokens() {
   const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider)
 
   // testnet address
-  const tokenAddress = '0x0000000000085d4780B73119b644AE5ecd22b376'
+  const tokenAddress = '0x1cB0906955623920c86A3963593a02a405Bb97fC'  //TUSD Proxy on Ropsten
 
   // Use wallet to get contract
   const contractAt = getContract(wallet)
@@ -47,6 +47,7 @@ async function transferTokens() {
 
     // transfer
     await transfer(provider, wallet, token, to, amount)
+    console.log("transaction: "+i)
   }
 }
 
